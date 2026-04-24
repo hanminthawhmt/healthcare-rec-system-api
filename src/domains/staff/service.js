@@ -36,9 +36,11 @@ const createNewDoctor = async (data, userId) => {
     "Only registered administrators can create doctors.",
   );
 
+  const hashedPassword = await bcrypt.hash(data.phone_no, 12);
+
   return await prisma.$transaction(async (tx) => {
     // Create user
-    const hashedPassword = await bcrypt.hash(data.phone_no, 12);
+    
     const user = await tx.user.create({
       data: {
         name: data.name,

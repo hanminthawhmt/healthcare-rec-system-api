@@ -1,10 +1,10 @@
-const departmentService = require("./service");
+const staffService = require("./service");
 
 const createDepartment = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    const department = await departmentService.createOne(req.body, userId);
+    const department = await staffService.createNewDepartment(req.body, userId);
 
     res.status(201).json({
       status: "success",
@@ -15,4 +15,4 @@ const createDepartment = async (req, res, next) => {
   }
 };
 
-module.exports = { createDepartment };
+module.exports = {createDepartment};

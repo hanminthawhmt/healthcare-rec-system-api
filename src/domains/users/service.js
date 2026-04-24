@@ -11,8 +11,8 @@ const createOne = async (userData) => {
       role: userData.role || "ADMIN",
       is_active: userData.is_active || false,
       admin: {
-        create : {}
-      }
+        create: {},
+      },
     },
 
     select: {
@@ -24,9 +24,9 @@ const createOne = async (userData) => {
       updated_at: true,
       admin: {
         select: {
-          id: true
-        }
-      }
+          id: true,
+        },
+      },
     },
   });
 };

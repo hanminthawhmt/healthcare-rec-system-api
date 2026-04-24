@@ -11,7 +11,7 @@ app.use((err, req, res, next) => {
     console.error('Message:', err.message)
     console.error('Cause:', err.cause)
     console.error('Full error:', err)
-    res.status(err.status || 500).json({
+    res.status(err.statusCode || 500).json({
         status: 'error',
         message: err.message || 'Internal server error'
     });

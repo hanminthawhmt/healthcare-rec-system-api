@@ -36,7 +36,7 @@ const registerAPatient = async (data, userId) => {
         name: data.name,
         email: data.email,
         password: hashedPassword,
-        role: constants.ROLES['PATIENT'],
+        role: constants.ROLES["PATIENT"],
         is_active: false,
       },
     });
@@ -63,10 +63,79 @@ const registerAPatient = async (data, userId) => {
   });
 };
 
-const generateHN = async () => {
+const registerBulkPatients = async (patientsArray, userId) => {
+  const admin = await getUserId(
+    userId,
+    "admin",
+    "Only registered administrators can register patients.",
+  );
+
+  const results = [];
+  return await prisma.$transaction(
+    async (tx) => {
+      for (const patientData of patientsArray) {
+        const existing = await tx.patient.findFirst({
+          where: {
+            OR: [
+              {
+                citizen_id: String(patientData.citizen_id),
+              },
+              {
+                hn_number: patientData.hn_number,
+              },
+            ],
+          },
+        });
+
+        if (existing) continue;
+
+        const hn_number = await generateHN(tx);
+
+        const hashedPassword = await bcrypt.hash(
+          String(patientData.citizen_id),
+          12,
+        );
+
+        const user = await tx.user.create({
+          data: {
+            name: patientData.name,
+            email: patientData.email,
+            password: hashedPassword,
+            role: constants.ROLES["PATIENT"],
+            is_active: false,
+          },
+        });
+
+        const patient = await tx.patient.create({
+          data: {
+            user_id: user.id,
+            citizen_id: String(patientData.citizen_id),
+            hn_number: hn_number,
+            phone_no: String(patientData.phone_no),
+          },
+        });
+
+        await tx.patient_Info.create({
+          data: {
+            patient_id: patient.id,
+            blood_type: constants.BLOOD_TYPES[patientData.blood_type],
+            date_of_birth: new Date(patientData.date_of_birth),
+            gender: patientData.gender.toUpperCase(),
+          },
+        });
+
+        results.push({ name: user.name, hn: hn_number });
+      }
+      return results;
+    },
+    { timeout: 10000 },
+  );
+};
+
+const generateHN = async (tx = prisma) => {
   const year = new Date().getFullYear().toString().slice(-2);
 
-  const lastPatient = await prisma.patient.findFirst({
+  const lastPatient = await tx.patient.findFirst({
     where: { hn_number: { startsWith: `HN${year}` } },
     orderBy: { hn_number: "desc" },
   });
@@ -80,4 +149,4 @@ const generateHN = async () => {
   return `HN${year}-${sequence.toString().padStart(4, "0")}`;
 };
 
-module.exports = { registerAPatient };
+module.exports = { registerAPatient, registerBulkPatients };

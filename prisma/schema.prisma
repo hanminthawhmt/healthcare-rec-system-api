@@ -42,6 +42,7 @@ model Patient {
   user       User            @relation(fields: [user_id], references: [id])
   info       Patient_Info?
   vitals     Patient_Vital[]
+  results    Lab_Result[]
 }
 
 model Patient_Info {
@@ -99,6 +100,63 @@ model Specialization {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   doctors    Doctor[] @relation("DoctorToSpecialization")
+}
+
+model Lab_Test {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  items   Lab_Test_Item[]
+  results Lab_Result[]
+}
+
+model Lab_Test_Item {
+  id              Int     @id @default(autoincrement())
+  lab_test_id     Int
+  name            String
+  unit            String?
+  normal_range    String?
+  gender_specific Boolean
+  value_type      String
+
+  lab_test Lab_Test     @relation(fields: [lab_test_id], references: [id])
+  results  Lab_Result[]
+}
+
+model Lab_Result {
+  id                Int      @id @default(autoincrement())
+  patient_id        Int
+  lab_test_id       Int
+  lab_test_item_id  Int
+  recommendation_id Int
+  result            Float
+  status            String
+  date              DateTime @default(now())
+
+  patient        Patient           @relation(fields: [patient_id], references: [id])
+  lab_test       Lab_Test          @relation(fields: [lab_test_id], references: [id])
+  lab_test_item  Lab_Test_Item     @relation(fields: [lab_test_item_id], references: [id])
+  recommendation Recommendation?   @relation(fields: [recommendation_id], references: [id])
+  prediction     Model_Prediction?
+}
+
+model Model_Prediction {
+  id                   Int        @id @default(autoincrement())
+  lab_result_id        Int        @unique
+  lab_result           Lab_Result @relation(fields: [lab_result_id], references: [id])
+  //lab_test_id          Int
+  model_recommendation String
+  probability          String
+}
+
+model Recommendation {
+  id                       Int          @id @default(autoincrement())
+  lab_result_id            Int
+  generated_recommendation String       @db.Text
+  doctor_recommendation    String?      @db.Text
+  date                     DateTime     @default(now())
+  status                   String
+  lab_results              Lab_Result[]
 }
 
 enum Role {

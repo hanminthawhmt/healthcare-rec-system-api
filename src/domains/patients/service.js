@@ -1,9 +1,7 @@
 const prisma = require("../../config/db");
 const bcrypt = require("bcryptjs");
 const constants = require("../../utils/constants");
-
 const { getUserId } = require("../../utils/profileFinder");
-const { da } = require("zod/locales");
 
 const registerAPatient = async (data, userId) => {
   const admin = await getUserId(

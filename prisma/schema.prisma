@@ -128,7 +128,7 @@ model Lab_Result {
   patient_id        Int
   lab_test_id       Int
   lab_test_item_id  Int
-  recommendation_id Int
+  recommendation_id Int? // need to make this to required
   result            Float
   status            String
   date              DateTime @default(now())
